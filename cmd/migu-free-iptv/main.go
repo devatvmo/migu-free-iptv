@@ -124,7 +124,7 @@ func main() {
 		if !ok || !resolved {
 			continue
 		}
-		fmt.Fprintf(&m3u, "#EXTINF:-1 tvg-name=\\\"%s\\\" group-title=\\\"央视\\\",%s\\n%s\\n", ch.Name, ch.Name, playURL)
+		fmt.Fprintf(&m3u, "#EXTINF:-1 tvg-name=\"%s\" group-title=\"央视\",%s\n%s\n", ch.Name, ch.Name, playURL)
 		fmt.Fprintf(&txt, "%s,%s\n", ch.Name, playURL)
 	}
 
