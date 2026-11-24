@@ -1,0 +1,13 @@
+[
+  {"name":"体育","id":"7538163cdac044398cb292ecf75db4e0"},
+  {"name":"央视","id":"1ff892f2b5ab4a79be6e25b69d2f5d05"},
+  {"name":"卫视","id":"0847b3f6c08a4ca28f85ba5701268424"},
+  {"name":"地方","id":"855e9adc91b04ea18ef3f2dbd43f495b"},
+  {"name":"影视","id":"10b0d04cb23d4ac5945c4bc77c7ac44e"},
+  {"name":"新闻","id":"c584f67ad63f4bc983c31de3a9be977c"},
+  {"name":"教育","id":"af72267483d94275995a4498b2799ecd"},
+  {"name":"熊猫","id":"e76e56e88fff4c11b0168f55e826445d"},
+  {"name":"综艺","id":"192a12edfef04b5eb616b878f031f32f"},
+  {"name":"少儿","id":"fc2f5b8fd7db43ff88c4243e731ecede"},
+  {"name":"纪实","id":"e1165138bdaa44b9a3138d74af6c6673"}
+]
