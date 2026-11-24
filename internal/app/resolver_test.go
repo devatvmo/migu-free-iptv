@@ -1,6 +1,8 @@
 package app
 
-import (\n\t"net/http"\n\t"net/http/httptest"
+import (
+	"net/http"
+	"net/http/httptest"
 	"net/url"
 	"strings"
 	"testing"
@@ -47,7 +49,6 @@ func TestSealVisitorURLWithoutPUData(t *testing.T) {
 		t.Fatalf("URL without puData should remain unchanged: %s", got)
 	}
 }
-
 
 func TestResolveDispatchURLFollowsRedirect(t *testing.T) {
 	mux := http.NewServeMux()
