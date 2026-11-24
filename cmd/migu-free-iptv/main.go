@@ -121,7 +121,6 @@ func main() {
 
 	var m3u strings.Builder
 	m3u.WriteString("#EXTM3U\n")
-	var txt strings.Builder
 	for n := 1; n <= 13; n++ {
 		ch, ok := selected[n]
 		playURL, resolved := urls[n]
@@ -129,13 +128,13 @@ func main() {
 			continue
 		}
 		fmt.Fprintf(&m3u, "#EXTINF:-1 tvg-name=\"%s\" group-title=\"央视\",%s\n%s\n", ch.Name, ch.Name, playURL)
-		fmt.Fprintf(&txt, "%s,%s\n", ch.Name, playURL)
 	}
 
 	if err := os.WriteFile(filepath.Join(*out, "cctv-1-13.m3u"), []byte(m3u.String()), 0644); err != nil {
 		fatal(err)
 	}
-	if err := os.WriteFile(filepath.Join(*out, "cctv-1-13.txt"), []byte(txt.String()), 0644); err != nil {
+	// Remove the legacy TXT playlist so the output directory only retains the M3U subscription format.
+	if err := os.Remove(filepath.Join(*out, "cctv-1-13.txt")); err != nil && !os.IsNotExist(err) {
 		fatal(err)
 	}
 	if err := writeJSON(filepath.Join(*out, "cctv-probe-report.json"), results); err != nil {
