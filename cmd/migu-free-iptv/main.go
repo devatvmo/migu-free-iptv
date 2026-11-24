@@ -7,7 +7,6 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
-	"sort"
 	"strings"
 	"time"
 
@@ -125,7 +124,7 @@ func main() {
 		if !ok || !resolved {
 			continue
 		}
-		fmt.Fprintf(&m3u, "#EXTINF:-1 tvg-name="%s" group-title="央视",%s\n%s\n", ch.Name, ch.Name, playURL)
+		fmt.Fprintf(&m3u, "#EXTINF:-1 tvg-name=\\\"%s\\\" group-title=\\\"央视\\\",%s\\n%s\\n", ch.Name, ch.Name, playURL)
 		fmt.Fprintf(&txt, "%s,%s\n", ch.Name, playURL)
 	}
 
@@ -154,7 +153,6 @@ func main() {
 	if err := writeJSON(filepath.Join(*out, "summary.json"), summary); err != nil {
 		fatal(err)
 	}
-	sort.Ints([]int{})
 	fmt.Printf("完成：找到 %d/13 个频道，成功获取 %d 个调度地址。\n", len(selected), resolvedCount)
 }
 
