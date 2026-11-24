@@ -14,14 +14,15 @@ type Channel struct {
 
 type ProbeResult struct {
 	Channel
-	Resolved bool   `json:"resolved"`
-	Playlist bool   `json:"playlist_ok"`
-	Segment  bool   `json:"segment_ok"`
-	FreeListed bool `json:"free_listed"`
-	Passed   bool   `json:"passed"`
-	PlayURL  string `json:"play_url,omitempty"`
-	Error    string `json:"error,omitempty"`
-	CheckedAt string `json:"checked_at"`
+	Resolved   bool   `json:"resolved"`
+	Playlist   bool   `json:"playlist_ok"`
+	Segment    bool   `json:"segment_ok"`
+	FreeListed bool   `json:"free_listed"`
+	Publishable bool  `json:"publishable"`
+	Passed     bool   `json:"passed"`
+	PlayURL    string `json:"play_url,omitempty"`
+	Error      string `json:"error,omitempty"`
+	CheckedAt  string `json:"checked_at"`
 }
 
 type Allowlist struct {
