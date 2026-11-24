@@ -112,8 +112,5 @@ func Probe(ch Channel, freeListed bool) ProbeResult {
 	r.Resolved = true
 	r.PlayURL = playURL
 	r.Publishable = freeListed
-	if !freeListed {
-		r.Error = "已获取游客调度地址，但尚未加入人工确认的免费频道名单"
-	}
 	return r
 }
