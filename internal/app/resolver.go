@@ -10,7 +10,6 @@ import (
 	"net/http"
 	"net/url"
 	"strconv"
-	"strings"
 	"time"
 )
 
@@ -49,6 +48,8 @@ func visitor720pDDCalcu(puData, pid, date string) string {
 	return string(out)
 }
 
+// sealVisitorURL adds the Android guest playback parameters while preserving
+// the original dispatch host so the end player's network performs dispatch.
 func sealVisitorURL(rawURL, pid string, now time.Time) (string, error) {
 	u, err := url.Parse(rawURL)
 	if err != nil {
@@ -56,17 +57,16 @@ func sealVisitorURL(rawURL, pid string, now time.Time) (string, error) {
 	}
 	q := u.Query()
 	puData := q.Get("puData")
-	if puData == "" {
-		return rawURL, nil
-	}
-	loc, err := time.LoadLocation("Asia/Shanghai")
-	if err != nil {
-		loc = time.FixedZone("Asia/Shanghai", 8*60*60)
-	}
-	date := now.In(loc).Format("20060102150405")
-	dd := visitor720pDDCalcu(puData, pid, date)
-	if dd != "" {
-		q.Set("ddCalcu", dd)
+	if puData != "" {
+		loc, err := time.LoadLocation("Asia/Shanghai")
+		if err != nil {
+			loc = time.FixedZone("Asia/Shanghai", 8*60*60)
+		}
+		date := now.In(loc).Format("20060102150405")
+		dd := visitor720pDDCalcu(puData, pid, date)
+		if dd != "" {
+			q.Set("ddCalcu", dd)
+		}
 	}
 	q.Set("sv", "10004")
 	q.Set("ct", "android")
@@ -74,67 +74,9 @@ func sealVisitorURL(rawURL, pid string, now time.Time) (string, error) {
 	return u.String(), nil
 }
 
-// resolveDispatchURL mirrors the bounded manual-redirect strategy used by
-// public Migu clients. The upstream bofang dispatch response is retried;
-// ordinary redirects are resolved and returned. Unlike some upstream loops,
-// every attempt is bounded, including responses without a Location header.
-func resolveDispatchURL(rawURL string, client *http.Client, attempts int, pause time.Duration) (string, error) {
-	if attempts < 1 {
-		attempts = 1
-	}
-	u, err := url.Parse(rawURL)
-	if err != nil || (u.Scheme != "http" && u.Scheme != "https") || u.Host == "" {
-		return "", fmt.Errorf("无效播放地址: %q", rawURL)
-	}
-	noRedirect := *client
-	noRedirect.CheckRedirect = func(_ *http.Request, _ []*http.Request) error {
-		return http.ErrUseLastResponse
-	}
-	var lastErr error
-	for i := 0; i < attempts; i++ {
-		req, reqErr := http.NewRequest(http.MethodGet, u.String(), nil)
-		if reqErr != nil {
-			return "", reqErr
-		}
-		req.Header.Set("User-Agent", "Mozilla/5.0")
-		resp, doErr := noRedirect.Do(req)
-		if doErr != nil {
-			lastErr = doErr
-		} else {
-			location := strings.TrimSpace(resp.Header.Get("Location"))
-			status := resp.StatusCode
-			resp.Body.Close()
-			if status >= 200 && status < 300 {
-				return u.String(), nil
-			}
-			if status >= 300 && status < 400 && location != "" {
-				if strings.HasPrefix(strings.ToLower(location), "http://bofang") {
-					lastErr = fmt.Errorf("咪咕 bofang 调度尚未返回最终地址")
-				} else {
-					next, parseErr := u.Parse(location)
-					if parseErr != nil {
-						return "", fmt.Errorf("解析重定向地址失败: %w", parseErr)
-					}
-					if next.Scheme != "http" && next.Scheme != "https" {
-						return "", fmt.Errorf("重定向协议不受支持: %s", next.Scheme)
-					}
-					return next.String(), nil
-				}
-			} else {
-				lastErr = fmt.Errorf("播放地址探测 HTTP %d，未获得有效重定向", status)
-			}
-		}
-		if i+1 < attempts && pause > 0 {
-			time.Sleep(pause)
-		}
-	}
-	if lastErr != nil {
-		return "", fmt.Errorf("播放地址重定向探测失败（尝试 %d 次）: %w", attempts, lastErr)
-	}
-	return "", fmt.Errorf("播放地址重定向探测失败")
-}
-
-// ResolveVisitor requests a visitor-mode stream URL at the free 720p rate tier.
+// ResolveVisitor requests a visitor-mode dispatch URL at the free 720p rate
+// tier. It deliberately does not resolve the dispatch redirect on the runner:
+// the final player must perform dispatch from its own network.
 func ResolveVisitor(pid string) (string, error) {
 	ts := strconv.FormatInt(time.Now().UnixMilli(), 10)
 	base := ts + pid + appVersion[:8]
@@ -185,12 +127,5 @@ func ResolveVisitor(pid string) (string, error) {
 	if payload.Body.URLInfo.URL == "" {
 		return "", fmt.Errorf("接口未返回播放地址 rid=%s", payload.RID)
 	}
-
-	// First resolve Migu's dispatch redirect, then apply puData/ddCalcu to
-	// the actual returned CDN URL. This ordering matches public guest clients.
-	finalURL, err := resolveDispatchURL(payload.Body.URLInfo.URL, client, 6, 150*time.Millisecond)
-	if err != nil {
-		return "", err
-	}
-	return sealVisitorURL(finalURL, pid, time.Now())
+	return sealVisitorURL(payload.Body.URLInfo.URL, pid, time.Now())
 }
