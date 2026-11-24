@@ -32,10 +32,14 @@ func writeJSON(path string, v any) error {
 var (
 	cctvArabic = regexp.MustCompile(`(?i)cctv[- _]*([1-9]|1[0-3])(?:[^0-9]|$)`)
 	centralArabic = regexp.MustCompile(`中央([1-9]|1[0-3])(?:台|套|频道)?`)
-	centralChinese = map[string]int{
-		"中央一": 1, "中央二": 2, "中央三": 3, "中央四": 4, "中央五": 5,
-		"中央六": 6, "中央七": 7, "中央八": 8, "中央九": 9, "中央十": 10,
-		"中央十一": 11, "中央十二": 12, "中央十三": 13,
+	centralChinese = []struct {
+		label string
+		number int
+	}{
+		{"中央十三", 13}, {"中央十二", 12}, {"中央十一", 11},
+		{"中央十", 10}, {"中央九", 9}, {"中央八", 8}, {"中央七", 7},
+		{"中央六", 6}, {"中央五", 5}, {"中央四", 4}, {"中央三", 3},
+		{"中央二", 2}, {"中央一", 1},
 	}
 )
 
@@ -51,9 +55,9 @@ func cctvNumber(name string) int {
 		fmt.Sscanf(m[1], "%d", &n)
 		return n
 	}
-	for label, n := range centralChinese {
-		if strings.Contains(name, label) {
-			return n
+	for _, item := range centralChinese {
+		if strings.Contains(name, item.label) {
+			return item.number
 		}
 	}
 	return 0
