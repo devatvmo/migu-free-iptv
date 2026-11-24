@@ -40,13 +40,23 @@ func TestSealVisitorURL(t *testing.T) {
 }
 
 func TestSealVisitorURLWithoutPUData(t *testing.T) {
-	raw := "https://example.test/live.m3u8?token=abc"
+	raw := "https://dispatch.example.test/live?token=abc"
 	got, err := sealVisitorURL(raw, "123456789", time.Now())
 	if err != nil {
 		t.Fatal(err)
 	}
-	if got != raw {
-		t.Fatalf("URL without puData should remain unchanged: %s", got)
+	u, err := url.Parse(got)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if u.Host != "dispatch.example.test" {
+		t.Fatalf("dispatch host was changed: %s", u.Host)
+	}
+	if u.Query().Get("sv") != "10004" || u.Query().Get("ct") != "android" {
+		t.Fatalf("missing Android URL parameters: %v", u.Query())
+	}
+	if u.Query().Get("token") != "abc" {
+		t.Fatalf("existing query parameter was lost: %v", u.Query())
 	}
 }
 
